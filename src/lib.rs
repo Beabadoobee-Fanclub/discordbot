@@ -16,12 +16,14 @@ impl TypeMapKey for PrefixCache {
     type Value = HashMap<PrefixType, String>;
 }
 
-struct Command {
+pub struct Command {
     name: String,
     description: String,
     usage: String,
+    category: String,
 }
 
-trait CommandHandler {
-    fn handle(&self);
+pub trait CommandHandler {
+    fn execute(&self);
+    fn register() -> Command;
 }
