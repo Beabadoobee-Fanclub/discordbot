@@ -1,20 +1,17 @@
-use std::{collections::HashMap, hash::Hash};
+use std::{collections::HashMap, hash::Hash, sync::Arc};
 
 use serenity::prelude::TypeMapKey;
+use tokio::sync::Mutex;
 
+pub mod client;
 pub mod commands;
 pub mod handler;
+pub mod websocket;
 
-#[derive(Debug, Hash, Eq, PartialEq)]
-pub enum PrefixType {
-    Guild(String),
-    Default,
-}
-pub struct PrefixCache;
+// pub enum
 
-impl TypeMapKey for PrefixCache {
-    type Value = HashMap<PrefixType, String>;
-}
+pub type InteractionCommandResult =
+    Result<serenity::builder::CreateInteractionResponse, Box<dyn std::error::Error + Send + Sync>>;
 
 struct Command {
     name: String,

@@ -1,15 +1,24 @@
+use std::error;
+
 use serenity::all::{
-    CommandInteraction, ComponentInteraction, Context, Interaction, Message, ModalInteraction,
+    CommandInteraction, ComponentInteraction, Context, CreateInteractionResponse,
+    CreateInteractionResponseMessage, CreateModal, Interaction, Message, ModalInteraction,
     PingInteraction,
 };
 
-use crate::{PrefixCache, PrefixType};
+use crate::{
+    client::{PrefixCache, PrefixType},
+    commands::ping,
+    InteractionCommandResult,
+};
 
 pub async fn handle_message_command(ctx: &Context, msg: &Message) -> bool {
     let data = ctx.data.read().await;
     let prefixes = data
         .get::<PrefixCache>()
-        .expect("Expected PrefixCache in TypeMap");
+        .expect("Expected PrefixCache in TypeMap")
+        .lock()
+        .await;
     let prefix = match prefixes.get(&PrefixType::Guild(msg.guild_id.unwrap().to_string())) {
         Some(p) => p,
         None => prefixes
@@ -37,7 +46,21 @@ pub async fn handle_interaction(ctx: &Context, interaction: &Interaction) {
     };
 }
 
-pub async fn handle_command(ctx: &Context, command: &CommandInteraction) {}
+pub async fn handle_command(ctx: &Context, command: &CommandInteraction) {
+    println!("Command: {}", command.data.name);
+    let response: InteractionCommandResult = match command.data.name.as_str() {
+        "ping" => ping::run(&ctx, &command).await,
+        _ => panic!("Command not found"),
+    };
+
+    match response {
+        Ok(response) => command
+            .create_response(&ctx.http, response)
+            .await
+            .expect("Error sending response"),
+        Err(why) => println!("Error running command: {:?}", why.to_string()),
+    }
+}
 
 pub async fn handle_autocomplete(ctx: &Context, autocomplete: &CommandInteraction) {}
 
