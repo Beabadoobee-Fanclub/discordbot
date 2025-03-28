@@ -13,12 +13,14 @@ pub mod websocket;
 pub type InteractionCommandResult =
     Result<serenity::builder::CreateInteractionResponse, Box<dyn std::error::Error + Send + Sync>>;
 
-struct Command {
+pub struct Command {
     name: String,
     description: String,
     usage: String,
+    category: String,
 }
 
-trait CommandHandler {
-    fn handle(&self);
+pub trait CommandHandler {
+    fn execute(&self);
+    fn register() -> Command;
 }
